@@ -1,38 +1,27 @@
-// pages/api/fixtures.js
-import { getTeams } from "../../data/teams";
+import fixtures from "../../data/fixtures.json";
+import teams from "../../data/teams.json";
 
-export default async function handler(req, res) {
-  const { league, country } = req.query;
+export default function handler(req, res) {
+  const { league } = req.query;
+  if (!league || !fixtures[league]) return res.status(404).json([]);
 
-  try {
-    const teams = await getTeams(country);
+  // Apply metrics per fixture
+  const data = fixtures[league].map(match => {
+    const home = teams[match.home] || {};
+    const away = teams[match.away] || {};
 
-    if (!teams || !Object.keys(teams).length) {
-      return res.status(404).json([]);
-    }
+    const metrics = {
+      score: `${(home.gf * 10 || 0)}/${(home.ga * 10 || 0)} - ${(away.gf * 10 || 0)}/${(away.ga * 10 || 0)}`,
+      wdl_ratio: `${home.wdl || "000"} - ${away.wdl || "000"}`,
+      home_away_wdl: `${home.homeWdl || "000"} - ${away.awayWdl || "000"}`
+    };
 
-    // Example: build fixtures dynamically (replace with real fixture scraping logic)
-    const fixtures = Object.keys(teams).map((homeTeam, i, arr) => {
-      const awayTeam = arr[(i + 1) % arr.length];
-      const h = teams[homeTeam];
-      const a = teams[awayTeam];
+    return {
+      home: match.home,
+      away: match.away,
+      metrics
+    };
+  });
 
-      const metrics = {
-        score: `${h.gf * 10}/${h.ga * 10} - ${a.gf * 10}/${a.ga * 10}`,
-        wdl_ratio: `${h.wdl} - ${a.wdl}`,
-        home_away_wdl: `${h.home_wdl} - ${a.home_wdl}`,
-      };
-
-      return {
-        home: homeTeam,
-        away: awayTeam,
-        metrics,
-      };
-    });
-
-    res.status(200).json({ [league]: fixtures });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch fixtures" });
-  }
+  res.status(200).json(data);
 }
