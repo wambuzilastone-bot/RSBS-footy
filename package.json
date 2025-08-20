@@ -1,5 +1,5 @@
 {
-  "name": "betexplorer-scraper",
+  "name": "rsbs-footy",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "cheerio": "^1.0.0-rc.12",
     "next": "14.2.4",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "node-fetch": "^2.6.12"
   }
 }
