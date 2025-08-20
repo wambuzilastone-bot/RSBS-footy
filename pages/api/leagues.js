@@ -1,9 +1,9 @@
-import leagues from "../../leagues.json";
+import leagues from "../../data/leagues.json";
 
 export default function handler(req, res) {
   const { country } = req.query;
-  if (!country) {
-    return res.status(400).json({ error: "country query parameter required" });
+  if (!country || !leagues[country]) {
+    return res.status(404).json([]);
   }
-  res.status(200).json(leagues[country] || []);
+  res.status(200).json(leagues[country]);
 }
