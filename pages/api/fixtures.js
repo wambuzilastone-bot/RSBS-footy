@@ -1,35 +1,29 @@
+// pages/api/fixtures.js
+
+import { getTeam } from "../../data/teams.js"; // make sure this path matches your repo
 import fetch from "node-fetch";
-import { getTeam } from "./teams.js";
 
-const BETEXPLORER_API = "https://rsbs-footy-83wv.vercel.app/api/fixtures"; // your Vercel endpoint
+const BETEXPLORER_URL = "https://rsbs-footy-83wv.vercel.app/api/fixtures"; // your live Vercel endpoint
 
-async function fetchFixtures() {
+export default async function handler(req, res) {
   try {
-    const response = await fetch(BETEXPLORER_API);
-    const data = await response.json(); // get live fixtures from BetExplorer
-    return data; // should include homeTeam and awayTeam fields
+    const response = await fetch(BETEXPLORER_URL);
+    const fixturesData = await response.json(); // live fixtures from BetExplorer
+    const metrics = fixturesData.map(fixture => {
+      const homeTeam = getTeam(fixture.homeTeam);
+      const awayTeam = getTeam(fixture.awayTeam);
+
+      return {
+        matchup: `${fixture.homeTeam} vs ${fixture.awayTeam}`,
+        goalRatio: `${homeTeam.GF}/${homeTeam.GA} - ${awayTeam.GF}/${awayTeam.GA}`,
+        WDL: `${homeTeam.WDL} - ${awayTeam.WDL}`,
+        WDL_tables: `${homeTeam.WDL_home} - ${awayTeam.WDL_away}`
+      };
+    });
+
+    res.status(200).json(metrics);
   } catch (err) {
     console.error("Error fetching fixtures:", err);
-    return [];
+    res.status(500).json({ error: "Failed to fetch fixtures" });
   }
 }
-
-// Build metrics for each fixture
-export async function buildFixtureMetrics() {
-  const fixtures = await fetchFixtures();
-
-  return fixtures.map(f => {
-    const home = getTeam(f.homeTeam);
-    const away = getTeam(f.awayTeam);
-
-    return {
-      matchup: `${f.homeTeam} vs ${f.awayTeam}`,
-      goalRatio: `${home.GF}/${home.GA} - ${away.GF}/${away.GA}`,
-      WDL: `${home.WDL} - ${away.WDL}`,
-      WDL_tables: `${home.WDL_home} - ${away.WDL_away}`
-    };
-  });
-}
-
-// Example: log metrics
-buildFixtureMetrics().then(metrics => console.log(JSON.stringify(metrics, null, 2)));
