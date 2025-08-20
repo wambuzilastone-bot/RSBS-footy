@@ -1,16 +1,14 @@
-import teams from "./teams.json";
+// data/teams.js
+import axios from "axios";
 
-// Helper: get GF/GA ratio multiplied by 10
-function getGoalRatio(team) {
-  return `${teams[team].GF}/${teams[team].GA}`;
-}
+const BASE_URL = "https://rsbs-footy.vercel.app"; // your deployed Vercel URL
 
-// Get metrics for two teams
-export function getMatchupMetric(home, away) {
-  return {
-    matchup: `${home} vs ${away}`,
-    goalRatio: `${getGoalRatio(home)} - ${getGoalRatio(away)}`,
-    WDL: `${teams[home].WDL} - ${teams[away].WDL}`,
-    WDL_tables: `${teams[home].WDL_home} - ${teams[away].WDL_away}`
-  };
+export async function getTeams(country) {
+  try {
+    const res = await axios.get(`${BASE_URL}/api/teams?country=${encodeURIComponent(country)}`);
+    return res.data; // this is live data from your scraper
+  } catch (err) {
+    console.error("Error fetching teams for country:", country, err);
+    return {};
+  }
 }
