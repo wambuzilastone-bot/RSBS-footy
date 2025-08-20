@@ -1,35 +1,35 @@
-import axios from "axios";
-import * as cheerio from "cheerio";
+import fetch from "node-fetch";
+import { getTeam } from "./teams.js";
 
-function generateMetric() {
-  // Random example metrics
-  const rsbs = `${Math.floor(Math.random()*20)+1}/${Math.floor(Math.random()*20)+1} - ${Math.floor(Math.random()*20)+1}/${Math.floor(Math.random()*20)+1}`;
-  const wdl = `${Math.floor(Math.random()*9)+1}${Math.floor(Math.random()*9)+1}${Math.floor(Math.random()*9)+1} - ${Math.floor(Math.random()*9)+1}${Math.floor(Math.random()*9)+1}${Math.floor(Math.random()*9)+1}`;
-  const homeAway = `${Math.floor(Math.random()*9)+1}${Math.floor(Math.random()*9)+1}${Math.floor(Math.random()*9)+1} - ${Math.floor(Math.random()*9)+1}${Math.floor(Math.random()*9)+1}${Math.floor(Math.random()*9)+1}`;
-  return { rsbs, wdl, homeAway };
-}
+const BETEXPLORER_API = "https://rsbs-footy-83wv.vercel.app/api/fixtures"; // your Vercel endpoint
 
-export default async function handler(req, res) {
-  const { league } = req.query;
-  if (!league) return res.status(400).json({ error: "Missing league" });
-
+async function fetchFixtures() {
   try {
-    const url = `https://www.betexplorer.com/soccer/${league.toLowerCase()}/fixtures/`;
-    const { data } = await axios.get(url);
-    const $ = cheerio.load(data);
-
-    let fixtures = [];
-    $("table.sportName tr").each((i, el) => {
-      const matchText = $(el).find("td").map((i, td) => $(td).text().trim()).get().join(" vs ");
-      if (matchText) {
-        const { rsbs, wdl, homeAway } = generateMetric();
-        fixtures.push(`${matchText} | ${rsbs} (GF/GA) | ${wdl} (WDL) | ${homeAway} (Home/Away WDL)`);
-      }
-    });
-
-    res.status(200).json(fixtures);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to fetch fixtures" });
+    const response = await fetch(BETEXPLORER_API);
+    const data = await response.json(); // get live fixtures from BetExplorer
+    return data; // should include homeTeam and awayTeam fields
+  } catch (err) {
+    console.error("Error fetching fixtures:", err);
+    return [];
   }
 }
+
+// Build metrics for each fixture
+export async function buildFixtureMetrics() {
+  const fixtures = await fetchFixtures();
+
+  return fixtures.map(f => {
+    const home = getTeam(f.homeTeam);
+    const away = getTeam(f.awayTeam);
+
+    return {
+      matchup: `${f.homeTeam} vs ${f.awayTeam}`,
+      goalRatio: `${home.GF}/${home.GA} - ${away.GF}/${away.GA}`,
+      WDL: `${home.WDL} - ${away.WDL}`,
+      WDL_tables: `${home.WDL_home} - ${away.WDL_away}`
+    };
+  });
+}
+
+// Example: log metrics
+buildFixtureMetrics().then(metrics => console.log(JSON.stringify(metrics, null, 2)));
