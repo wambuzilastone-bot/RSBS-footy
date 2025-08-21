@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>RSBS Footy Viewer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <h1>RSBS Footy Viewer</h1>
+    <div class="base-url">
+      <label for="baseUrl">API:</label>
+      <input id="baseUrl" type="url" value="https://rsbs-footy.vercel.app" spellcheck="false" />
+      <button id="applyBaseUrl" title="Use this API base URL">Apply</button>
+      <button id="reloadAll" title="Reload everything">Reload</button>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="panel">
+      <h2>Countries A–Z</h2>
+      <input id="countrySearch" class="search" placeholder="Filter countries…" />
+      <ul id="countries" class="list"></ul>
+      <div id="countriesStatus" class="status"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Leagues</h2>
+      <div class="selection">Country: <span id="selectedCountry">—</span></div>
+      <input id="leagueSearch" class="search" placeholder="Filter leagues…" />
+      <ul id="leagues" class="list"></ul>
+      <div id="leaguesStatus" class="status"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Fixtures & Metrics</h2>
+      <div class="selection">League: <span id="selectedLeague">—</span></div>
+      <ul id="fixtures" class="fixtures"></ul>
+      <div id="fixturesStatus" class="status"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>Monospace UI. Data served by your Vercel endpoints.</span>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
